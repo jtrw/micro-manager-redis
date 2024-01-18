@@ -71,7 +71,13 @@ func (s Server) routes() chi.Router {
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			//r.Use(rest.Authentication("Api-Token", s.Secret))
-			r.Get("/keys", handler.ShowTaskInfo)
+			r.Get("/keys", handler.AllKeys)
+			r.Get("/keys/{key}", handler.GetKey)
+			//r.Post("/keys", handler.CreateKey)
+			//r.Put("/keys/{key}", handler.UpdateKey)
+			r.Delete("/keys/{key}", handler.DeleteKey)
+			r.Delete("/keys", handler.DeleteAllKeys)
+			r.Get("/keys/group", handler.GroupKeys)
 		},
 	)
 
