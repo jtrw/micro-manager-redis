@@ -24,7 +24,7 @@ type Options struct {
 	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
 	WebRoot        string        `long:"web" env:"WEB" default:"/" description:"web ui location"`
 	RedisUrl       string        `long:"redis-url" env:"REDIS_URL" default:"localhost:6379" description:"redis url"`
-	Database       string        `long:"redis-db" env:"REDIS_DATABASE" default:"3" description:"database name"`
+	Database       int           `long:"redis-db" env:"REDIS_DATABASE" default:"3" description:"database name"`
 	RedisPass      string        `long:"redis-pass" env:"REDIS_PASSWORD" default:"Y6zhcj769Fo1" description:"database password"`
 }
 
@@ -78,9 +78,9 @@ func main() {
 
 func getRedisConnection(opts Options) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "Y6zhcj769Fo1", // no password set
-		DB:       3,              // use default DB
+		Addr:     opts.RedisUrl,
+		Password: opts.RedisPass, // no password set
+		DB:       opts.Database,  // use default DB
 	})
 
 	_, err := rdb.Ping(context.Background()).Result()
