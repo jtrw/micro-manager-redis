@@ -2,7 +2,7 @@ export const API_BASE = "/api/v1";
 export const BASE_URL = getBaseUrl();
 
 export function getBaseUrl() {
-  return "127.0.0.8080";
+  return "http://127.0.0.1:8080";
   // const baseUrl = window.mradis_config.host ?? process.env.REMARK_URL;
 
   // if (!baseUrl) {

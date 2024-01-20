@@ -26,6 +26,8 @@ type Server struct {
 	Secret         string
 	Version        string
 	Client         *redis.Client
+	AuthLogin      string
+	AuthPassword   string
 }
 
 func (s Server) Run(ctx context.Context) error {
@@ -68,6 +70,7 @@ func (s Server) routes() chi.Router {
 	router.Use(middleware.Logger)
 
 	handler := manageHandler.NewHandler(s.Client)
+
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			//r.Use(rest.Authentication("Api-Token", s.Secret))
@@ -82,12 +85,22 @@ func (s Server) routes() chi.Router {
 			r.Delete("/keys-group/{group}", handler.DeleteByGroup)
 		},
 	)
-
+	router.Route(
+		"/auth", func(r chi.Router) {
+			//r.Use(Auth("admin", "admin"))
+			r.Use(Cors)
+			authHandle := manageHandler.NewAuth(s.AuthLogin, s.AuthPassword)
+			r.Post("/", authHandle.Auth)
+		},
+	)
 	router.Get(
 		"/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 			render.PlainText(w, r, "User-agent: *\nDisallow: /\n")
 		},
 	)
+	// router.Post("/auth", func(w http.ResponseWriter, r *http.Request) {
+	// 	r.Use(Auth(s.AuthLogin, s.AuthPassword))
+	// })),
 
 	return router
 }
