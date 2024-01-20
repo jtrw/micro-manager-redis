@@ -17,7 +17,6 @@ export const authProvider: AuthProvider = {
       method: "POST",
       body: JSON.stringify({ username: username, password: password }),
     }).then(({ json }) => {
-      localStorage.setItem("api-token", json.token);
       localStorage.setItem("user", JSON.stringify(json));
     });
   },
@@ -25,9 +24,17 @@ export const authProvider: AuthProvider = {
     localStorage.removeItem("user");
     return Promise.resolve();
   },
-  checkError: () => Promise.resolve(),
-  checkAuth: () =>
-    localStorage.getItem("user") ? Promise.resolve() : Promise.reject(),
+  checkError: (error) => {
+    const status = error.status;
+    if (status === 401 || status === 403) {
+      localStorage.removeItem("user");
+      return Promise.reject();
+    }
+    return Promise.resolve();
+  },
+  checkAuth: () => {
+    return localStorage.getItem("user") ? Promise.resolve() : Promise.reject();
+  },
   getPermissions: () => {
     return Promise.resolve(undefined);
   },

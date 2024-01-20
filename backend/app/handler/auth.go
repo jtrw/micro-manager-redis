@@ -5,6 +5,7 @@ import (
 	"io"
 	//"github.com/go-chi/render"
 	//"log"
+	"crypto/sha256"
 	"net/http"
 )
 
@@ -17,7 +18,7 @@ func NewAuth(username, password string) Auth {
 	return Auth{Username: username, Password: password}
 }
 
-func (a Auth) Auth(w http.ResponseWriter, r *http.Request) {
+func (a Auth) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var requestData JSON
@@ -41,8 +42,14 @@ func (a Auth) Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if a.Username == requestData["username"] && a.Password == requestData["password"] {
-		jsonResponse := JSON{"id": 1, "username": a.Username, "fullName": a.Username, "token": "124"}
+		jsonResponse := JSON{"username": a.Username, "fullName": a.Username, "token": a.GetToken()}
 		json.NewEncoder(w).Encode(jsonResponse)
 		return
 	}
+}
+
+func (a Auth) GetToken() string {
+	h := sha256.New()
+	h.Write([]byte(a.Username + ":" + a.Password))
+	return string(h.Sum(nil))
 }
