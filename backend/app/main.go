@@ -26,6 +26,8 @@ type Options struct {
 	RedisUrl       string        `long:"redis-url" env:"REDIS_URL" default:"localhost:6379" description:"redis url"`
 	Database       int           `long:"redis-db" env:"REDIS_DATABASE" default:"3" description:"database name"`
 	RedisPass      string        `long:"redis-pass" env:"REDIS_PASSWORD" default:"Y6zhcj769Fo1" description:"database password"`
+	AuthLogin      string        `long:"auth-login" env:"AUTH_LOGIN" default:"admin" description:"auth login"`
+	AuthPassword   string        `long:"auth-password" env:"AUTH_PASSWORD" default:"admin" description:"auth password"`
 }
 
 var revision string
@@ -70,6 +72,8 @@ func main() {
 		Secret:         opts.Secret,
 		Version:        revision,
 		Client:         rdb,
+		AuthLogin:      opts.AuthLogin,
+		AuthPassword:   opts.AuthPassword,
 	}
 	if err := srv.Run(ctx); err != nil {
 		log.Printf("[ERROR] failed, %+v", err)

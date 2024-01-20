@@ -1,4 +1,5 @@
 import {
+  fetchUtils,
   Admin,
   Resource,
   ListGuesser,
@@ -8,41 +9,21 @@ import {
 import simpleRestProvider from "ra-data-simple-rest";
 //import { dataProvider } from "./dataProvider";
 import { authProvider } from "./authProvider";
+import { BASE_URL, API_BASE } from "./common/constants.config";
 
-let dataProvider = simpleRestProvider("http://127.0.0.1:8080/api/v1");
-// dataProvider.getOne = (resource, params) => {
-//   return fetch(`http://127.0.0.1:8080/api/v1/keys/TEST_1::newkey`, {
-//     method: "GET",
-//     headers: new Headers({
-//       "Content-Type": "application/json",
-//       Authorization: "Bearer " + localStorage.getItem("token"),
-//     }),
-//   })
-//     .then((response) => response.json())
-//     .then((json) => {
-//       return Promise.resolve({
-//         data: json,
-//       });
-//     })
-//     .catch((error) => {
-//       console.error(error);
-//     });
-// };
+const httpClient = (url, options = {}) => {
+  if (!options.headers) {
+    options.headers = new Headers({ Accept: "application/json" });
+  }
+  const { token } = JSON.parse(localStorage.getItem("api-token"));
+  options.headers.set("Authorization", `Bearer ${token}`);
+  return fetchUtils.fetchJson(url, options);
+};
+
+let dataProvider = simpleRestProvider(`${BASE_URL}${API_BASE}`, httpClient);
 
 export const App = () => (
   <Admin dataProvider={dataProvider} authProvider={authProvider}>
-    {/* <Resource
-      name="posts"
-      list={ListGuesser}
-      edit={EditGuesser}
-      show={ShowGuesser}
-    />
-    <Resource
-      name="comments"
-      list={ListGuesser}
-      edit={EditGuesser}
-      show={ShowGuesser}
-    /> */}
     <Resource
       name="keys"
       list={ListGuesser}
