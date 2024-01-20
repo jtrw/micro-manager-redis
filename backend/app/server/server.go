@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+
 	"github.com/didip/tollbooth/v7"
 	"github.com/didip/tollbooth_chi"
 	"github.com/go-chi/chi/v5"
@@ -70,11 +71,13 @@ func (s Server) routes() chi.Router {
 	router.Use(middleware.Logger)
 
 	handler := manageHandler.NewHandler(s.Client)
+	authHandle := manageHandler.NewAuth(s.AuthLogin, s.AuthPassword)
 
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			//r.Use(rest.Authentication("Api-Token", s.Secret))
 			r.Use(Cors)
+			r.Use(Auth(authHandle.GetToken()))
 			r.Get("/keys", handler.AllKeys)
 			r.Get("/keys/{key}", handler.GetKey)
 			//r.Post("/keys", handler.CreateKey)
@@ -87,20 +90,15 @@ func (s Server) routes() chi.Router {
 	)
 	router.Route(
 		"/auth", func(r chi.Router) {
-			//r.Use(Auth("admin", "admin"))
 			r.Use(Cors)
-			authHandle := manageHandler.NewAuth(s.AuthLogin, s.AuthPassword)
-			r.Post("/", authHandle.Auth)
+			r.Post("/", authHandle.Login)
 		},
 	)
+
 	router.Get(
 		"/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 			render.PlainText(w, r, "User-agent: *\nDisallow: /\n")
 		},
 	)
-	// router.Post("/auth", func(w http.ResponseWriter, r *http.Request) {
-	// 	r.Use(Auth(s.AuthLogin, s.AuthPassword))
-	// })),
-
 	return router
 }

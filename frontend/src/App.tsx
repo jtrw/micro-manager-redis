@@ -15,7 +15,8 @@ const httpClient = (url, options = {}) => {
   if (!options.headers) {
     options.headers = new Headers({ Accept: "application/json" });
   }
-  const { token } = JSON.parse(localStorage.getItem("api-token"));
+
+  const { token } = JSON.parse(localStorage.getItem("user"));
   options.headers.set("Authorization", `Bearer ${token}`);
   return fetchUtils.fetchJson(url, options);
 };
