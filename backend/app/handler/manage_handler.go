@@ -39,19 +39,24 @@ type SplitKeys struct {
 	Separator string `json:"separator"`
 }
 
+func (h Handler) getRange(r *http.Request) []string {
+	ran := []string{}
+
+	if r.URL.Query().Has("range") {
+		rangePage := r.URL.Query().Get("range")
+		rangePage = strings.ReplaceAll(rangePage, "[", "")
+		rangePage = strings.ReplaceAll(rangePage, "]", "")
+
+		ran = strings.Split(rangePage, ",")
+	}
+
+	return ran
+}
+
 func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	rangePage := "[0, 50]"
-	if r.URL.Query().Has("range") {
-		rangePage = r.URL.Query().Get("range")
-	}
-	log.Println(rangePage)
-
-	rangePage = strings.ReplaceAll(rangePage, "[", "")
-	rangePage = strings.ReplaceAll(rangePage, "]", "")
-
-	ran := strings.Split(rangePage, ",")
+	ran := h.getRange(r)
 
 	ctx := context.Background()
 
@@ -86,7 +91,6 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 		}
 		allKeys = allKeys[offset:limit]
 	}
-
 	json.NewEncoder(w).Encode(allKeys)
 }
 
@@ -122,8 +126,23 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 	if err := iter.Err(); err != nil {
 		panic(err)
 	}
+
+	ran := h.getRange(r)
+
 	count := len(allKeys)
-	w.Header().Set("Content-Range", string(count))
+	if len(ran) > 0 {
+		offset, _ := strconv.Atoi(ran[0])
+		limit, _ := strconv.Atoi(ran[1])
+		if limit > count {
+			limit = count
+		}
+		allKeys = allKeys[offset:limit]
+	}
+
+	log.Println(count)
+	contentRange := "keys-group 0-0/" + strconv.Itoa(count)
+	w.Header().Set("Content-Range", contentRange)
+	//w.Header().Set("Content-Range", string(count))
 	json.NewEncoder(w).Encode(allKeys)
 }
 
