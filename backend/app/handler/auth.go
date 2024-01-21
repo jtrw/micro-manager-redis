@@ -5,7 +5,8 @@ import (
 	"io"
 	//"github.com/go-chi/render"
 	//"log"
-	"crypto/sha256"
+	"crypto/sha1"
+	"encoding/base64"
 	"net/http"
 )
 
@@ -49,7 +50,7 @@ func (a Auth) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a Auth) GetToken() string {
-	h := sha256.New()
+	h := sha1.New()
 	h.Write([]byte(a.Username + ":" + a.Password))
-	return string(h.Sum(nil))
+	return base64.URLEncoding.EncodeToString(h.Sum(nil))
 }
