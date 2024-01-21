@@ -7,7 +7,6 @@ import {
   ShowGuesser,
 } from "react-admin";
 import simpleRestProvider from "ra-data-simple-rest";
-//import { dataProvider } from "./dataProvider";
 import { authProvider } from "./authProvider";
 import { BASE_URL, API_BASE } from "./common/constants.config";
 
