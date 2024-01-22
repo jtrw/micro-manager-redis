@@ -72,8 +72,7 @@ func (s Server) routes() chi.Router {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID, middleware.RealIP)
 	router.Use(middleware.Throttle(1000), middleware.Timeout(60*time.Second))
-	//router.Use(rest.AppInfo("events", "Jrtw", s.Version), rest.Ping)
-	router.Use(rest.Ping)
+	router.Use(rest.AppInfo("Manag-RKeys", "Jrtw", s.Version), rest.Ping)
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
 
@@ -82,7 +81,6 @@ func (s Server) routes() chi.Router {
 
 	router.Route(
 		"/api/v1", func(r chi.Router) {
-			//r.Use(rest.Authentication("Api-Token", s.Secret))
 			r.Use(Cors)
 			r.Use(Auth(authHandle.GetToken()))
 			r.Get("/keys", handler.AllKeys)

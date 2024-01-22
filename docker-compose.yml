@@ -1,10 +1,15 @@
 version: "3"
 services:
-  rkeys:
+  manage-rkeys:
+    container_name: manage-rkeys
     build: .
     ports:
       - "8080:8080"
     extra_hosts:
-      - "host.docker.internal:host-gateway" #host and ip
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env
+    environment:
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_DATABASE=${REDIS_DATABASE}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
