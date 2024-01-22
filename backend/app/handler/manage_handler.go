@@ -39,7 +39,7 @@ type SplitKeys struct {
 	Separator string `json:"separator"`
 }
 
-func (h Handler) getRange(r *http.Request) []string {
+func getRange(r *http.Request) []string {
 	ran := []string{}
 
 	if r.URL.Query().Has("range") {
@@ -53,14 +53,39 @@ func (h Handler) getRange(r *http.Request) []string {
 	return ran
 }
 
+func getFilter(r *http.Request) string {
+	filter := r.URL.Query().Get("filter")
+
+	if filter != "" {
+		jsonFilter := JSON{}
+		err := json.Unmarshal([]byte(filter), &jsonFilter)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(jsonFilter)
+		if jsonFilter["key"] != nil {
+			filter = jsonFilter["key"].(string)
+			return filter
+		}
+	}
+
+	return ""
+}
+
 func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	ran := h.getRange(r)
+	ran := getRange(r)
+
+	pattern := "*"
+	filter := getFilter(r)
+	if filter != "" {
+		pattern = pattern + filter + pattern
+	}
 
 	ctx := context.Background()
 
-	iter := h.Database.Scan(ctx, 0, "*", 0).Iterator()
+	iter := h.Database.Scan(ctx, 0, pattern, 0).Iterator()
 
 	allKeys := []Keys{}
 
@@ -105,7 +130,13 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 
-	iter := h.Database.Scan(ctx, 0, "*"+separator+"*", 0).Iterator()
+	pattern := "*" + separator + "*"
+	filter := getFilter(r)
+	if filter != "" {
+		pattern = "*" + filter + "*" + separator + "*"
+	}
+
+	iter := h.Database.Scan(ctx, 0, pattern, 0).Iterator()
 	allKeys := []SplitKeys{}
 
 	for iter.Next(ctx) {
@@ -127,7 +158,7 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	ran := h.getRange(r)
+	ran := getRange(r)
 
 	count := len(allKeys)
 	if len(ran) > 0 {

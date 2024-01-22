@@ -3,10 +3,10 @@ export const BASE_URL = getBaseUrl();
 
 export function getBaseUrl() {
   return "http://127.0.0.1:8080";
-  // const baseUrl = window.mradis_config.host ?? process.env.REMARK_URL;
+  // const baseUrl = window.mradis_config.host ?? process.env.RKEYS_URL;
 
   // if (!baseUrl) {
-  //   throw new Error(`Remark42: remark_config.host wasn't configured.`);
+  //   throw new Error(`RKeys: rkeys_config.host wasn't configured.`);
   // }
 
   // // Validate host
