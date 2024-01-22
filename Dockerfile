@@ -14,7 +14,6 @@ RUN apk add --no-cache --update git && \
 RUN yarn build
 
 FROM golang:1.21.5-alpine AS build-backend
-#FROM golang:1.18-alpine as build-backend
 
 ENV GOFLAGS="-mod=vendor"
 ENV CGO_ENABLED=0
@@ -29,7 +28,6 @@ ARG GIT_BRANCH
 ARG GITHUB_SHA
 
 ADD backend /build/backend
-# to embed the frontend files statically into Remark42 binary
 COPY --from=build-frontend /srv/frontend/dist/ /build/backend/web/
 #RUN find /build/backend/web/ -regex '.*\.\(html\|js\|mjs\)$' -print -exec sed -i "s|{% RKEYS_URL %}|http://127.0.0.1:8080|g" {} \;
 WORKDIR /build/backend
@@ -50,12 +48,6 @@ RUN \
 RUN echo go version: `go version`
 
 RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
-
-##RUN \
-    ##version="$(/script/version.sh)" && \
-    ##echo "version=$version" && \
-    ##go build -o rkeys -ldflags "-X main.revision=${version} -s -w" ./app
-  ##  go build -o rkeys -ldflags "-X main.revision=1.0.0 -s -w" ./app
 
 FROM scratch
 
