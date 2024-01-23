@@ -52,7 +52,8 @@ RUN echo go version: `go version`
 
 RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
 
-FROM scratch
+#FROM scratch
+FROM alpine
 
 ARG GITHUB_SHA
 
@@ -65,7 +66,8 @@ COPY --from=build-frontend /srv/frontend/dist/ /srv/web/
 #RUN chown -R app:app /srv
 #RUN ln -s /srv/rkeys /usr/bin/rkeys
 
-#XPOSE 8080
+#EXPOSE 8080
 #HEALTHCHECK --interval=30s --timeout=3s CMD curl --fail http://localhost:8080/ping || exit 1
-
+#HEALTHCHECK --interval=5s --timeout=3s CMD wget -qO- http://127.0.0.1:8080/ping | grep -q 'pong' || exit 1
 CMD ["/srv/rkeys", "server"]
+#ENTRYPOINT ["/srv/rkeys", "server"]
