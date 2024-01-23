@@ -1,8 +1,6 @@
-import { AuthProvider, HttpError } from "react-admin";
-import data from "./users.json";
-import { stringify } from "query-string";
+import { AuthProvider } from "react-admin";
 import { fetchUtils } from "react-admin";
-import { API_BASE, BASE_URL } from "./common/constants.config";
+import { BASE_URL } from "./common/constants.config";
 
 /**
  * This authProvider is only for test purposes. Don't use it in production.
