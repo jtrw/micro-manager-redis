@@ -3,6 +3,9 @@ FROM --platform=$BUILDPLATFORM node:21.4.0-alpine AS build-frontend
 ARG SKIP_FRONTEND_TEST
 ARG SKIP_FRONTEND_BUILD
 
+ARG MANAGE_RKEYS_URL
+ENV MANAGE_RKEYS_URL=$MANAGE_RKEYS_URL
+
 WORKDIR /srv/frontend/
 
 COPY ./frontend/ /srv/frontend/
@@ -62,7 +65,7 @@ COPY --from=build-frontend /srv/frontend/dist/ /srv/web/
 #RUN chown -R app:app /srv
 #RUN ln -s /srv/rkeys /usr/bin/rkeys
 
-EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=3s CMD curl --fail http://localhost:8080/ping || exit 1
+#XPOSE 8080
+#HEALTHCHECK --interval=30s --timeout=3s CMD curl --fail http://localhost:8080/ping || exit 1
 
 CMD ["/srv/rkeys", "server"]
