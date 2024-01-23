@@ -44,9 +44,12 @@ func (a Auth) Login(w http.ResponseWriter, r *http.Request) {
 
 	if a.Username == requestData["username"] && a.Password == requestData["password"] {
 		jsonResponse := JSON{"username": a.Username, "fullName": a.Username, "token": a.GetToken()}
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(jsonResponse)
 		return
 	}
+
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func (a Auth) GetToken() string {

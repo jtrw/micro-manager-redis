@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile
       args:
         MANAGE_RKEYS_URL: ${MANAGE_RKEYS_URL}
-
     ports:
       - "8080:8080"
     extra_hosts:
@@ -20,10 +19,15 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - AUTH_LOGIN=${AUTH_LOGIN}
       - AUTH_PASSWORD=${AUTH_PASSWORD}
-      - MANAGE_RKEYS_URL=${MANAGE_RKEYS_URL}
-      - LISTEN=:8080
+      - LISTEN_SERVER=${LISTEN_SERVER}
     healthcheck:
-      test: ["CMD", "curl", "http://localhost:8080/ping || exit 1"]
-      interval: 30s
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "wget -qO- http://127.0.0.1:8080/ping | grep -q 'pong' || exit 1",
+        ]
+      interval: 5s
       timeout: 3s
       retries: 3

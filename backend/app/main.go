@@ -20,7 +20,7 @@ import (
 var webFS embed.FS
 
 type Options struct {
-	Listen         string        `short:"l" long:"listen" env:"LISTEN" default:":8080" description:"listen address"`
+	Listen         string        `short:"l" long:"listen" env:"LISTEN_SERVER" default:":8080" description:"listen address"`
 	Secret         string        `short:"s" long:"secret" env:"TASKS_SECRET_KEY" default:"123"`
 	PinSize        int           `long:"pinszie" env:"PIN_SIZE" default:"5" description:"pin size"`
 	MaxExpire      time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
