@@ -1,76 +1,57 @@
 package handler
 
 import (
-	"context"
-	//	"encoding/json"
+	"encoding/json"
+	//"errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"micro-manager-redis/app/repository"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	//"time"
-
-	//	"github.com/go-chi/chi/v5"
-	"github.com/redis/go-redis/v9"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"time"
 )
 
-// type RedisClient interface {
-// 	Scan(ctx context.Context, cursor uint64, match string, count int64) *redis.ScanCmd
-// 	Get(ctx context.Context, key string) *redis.StringCmd
-// 	// Include other methods you're using...
-// }
-
-// MockRedisClient - мок для redis.Client
-type MockRedisClient struct {
+type MockRedisRepository struct {
 	mock.Mock
 }
 
-func (m *MockRedisClient) Scan(ctx context.Context, cursor uint64, match string, count int64) *redis.ScanCmd {
-	args := m.Called(ctx, cursor, match, count)
-	return args.Get(0).(*redis.ScanCmd)
+func (m *MockRedisRepository) GetAllKeys(pattern string) ([]repository.Keys, error) {
+	args := m.Called(pattern)
+	return args.Get(0).([]repository.Keys), args.Error(1)
 }
 
-func (m *MockRedisClient) Get(ctx context.Context, key string) *redis.StringCmd {
-	args := m.Called(ctx, key)
-	return args.Get(0).(*redis.StringCmd)
+func (m *MockRedisRepository) GroupKeys(pattern, separator string) ([]repository.SplitKeys, error) {
+	args := m.Called(pattern, separator)
+	return args.Get(0).([]repository.SplitKeys), args.Error(1)
 }
 
-func (m *MockRedisClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
-	args := m.Called(ctx, keys)
-	return args.Get(0).(*redis.IntCmd)
+func (m *MockRedisRepository) GetKey(key string) (repository.Keys, error) {
+	args := m.Called(key)
+	return args.Get(0).(repository.Keys), args.Error(1)
 }
 
-func (m *MockRedisClient) Expire(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd {
-	args := m.Called(ctx, key, expiration)
-	return args.Get(0).(*redis.BoolCmd)
+func (m *MockRedisRepository) DeleteKey(key string) {
+	m.Called(key)
 }
 
-func (m *MockRedisClient) TTL(ctx context.Context, key string) *redis.DurationCmd {
-	args := m.Called(ctx, key)
-	return args.Get(0).(*redis.DurationCmd)
+func (m *MockRedisRepository) DeleteAllKeys() {
+	m.Called()
 }
 
-func NewHandlerMock(database RedisClient) Handler {
-	return Handler{Database: database}
+func (m *MockRedisRepository) DeleteByGroup(pattern string) error {
+	args := m.Called(pattern)
+	return args.Error(0)
 }
+
+// Implement other methods from RedisRepositoryInterface...
 
 func TestAllKeys(t *testing.T) {
-	mockRedis := new(MockRedisClient)
-	handler := NewHandlerMock(mockRedis)
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
 
-	// Мокуємо необхідні виклики redis.Client для тесту AllKeys
-
-	// Приклад мокування Scan
-	mockRedis.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return(&redis.ScanCmd{})
-
-	// Приклад мокування Get
-	// mockRedis.On("Get", mock.Anything, mock.Anything).
-	// 	Return(&redis.StringCmd{
-	// 		Cmd: &redis.Cmd{},
-	// 		Val: "some_value",
-	// 	})
+	// Mock repository method
+	mockRepo.On("GetAllKeys", mock.Anything).
+		Return([]repository.Keys{{Key: "key1", Value: "value1", Expire: 0}}, nil)
 
 	req, err := http.NewRequest("GET", "/keys", nil)
 	if err != nil {
@@ -80,10 +61,144 @@ func TestAllKeys(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler.AllKeys(rr, req)
 
-	// Перевірка статусу відповіді
+	// Assert the status code
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	// Додаткові перевірки, які вам можуть знадобитися...
+	// Assert the response body or any other expectations
+	var result []repository.Keys
+	err = json.Unmarshal(rr.Body.Bytes(), &result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, "key1", result[0].Key)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
 }
 
-// Аналогічно напишіть тести для інших методів, таких як GroupKeys, DeleteKey, DeleteByGroup, DeleteAllKeys, GetKey.
+func TestGroupKeys(t *testing.T) {
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
+
+	// Mock repository method
+	mockRepo.On("GroupKeys", mock.Anything, mock.Anything).
+		Return([]repository.SplitKeys{{Key: "key1", Separator: ":"}}, nil)
+
+	req, err := http.NewRequest("GET", "/keys/group", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.GroupKeys(rr, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	// Assert the response body or any other expectations
+	var result []repository.SplitKeys
+	err = json.Unmarshal(rr.Body.Bytes(), &result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, "key1", result[0].Key)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetKey(t *testing.T) {
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
+
+	// Mock repository method
+	mockRepo.On("GetKey", mock.Anything).
+		Return(repository.Keys{Key: "key1", Value: "value1", Expire: 0}, nil)
+
+	req, err := http.NewRequest("GET", "/keys/key1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.GetKey(rr, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	// Assert the response body or any other expectations
+	var result repository.Keys
+	err = json.Unmarshal(rr.Body.Bytes(), &result)
+	assert.Nil(t, err)
+	assert.Equal(t, "key1", result.Key)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
+}
+
+func TestDeleteKey(t *testing.T) {
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
+
+	// Mock repository method
+	mockRepo.On("DeleteKey", mock.Anything).
+		Return()
+
+	req, err := http.NewRequest("DELETE", "/keys/key1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.DeleteKey(rr, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
+}
+
+func TestDeleteAllKeys(t *testing.T) {
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
+
+	// Mock repository method
+	mockRepo.On("DeleteAllKeys").
+		Return()
+
+	req, err := http.NewRequest("DELETE", "/keys", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.DeleteAllKeys(rr, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
+}
+
+func TestDeleteByGroup(t *testing.T) {
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
+
+	// Mock repository method
+	mockRepo.On("DeleteByGroup", mock.Anything).
+		Return(nil)
+
+	req, err := http.NewRequest("DELETE", "/keys/group", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.DeleteByGroup(rr, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
+}
