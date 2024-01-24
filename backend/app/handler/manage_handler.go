@@ -1,14 +1,10 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
-	"log"
-
-	//"log"
 	"github.com/go-chi/chi/v5"
-	//"github.com/go-chi/render"
-	"github.com/redis/go-redis/v9"
+	"log"
+	repository "micro-manager-redis/app/repository"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,11 +17,11 @@ const (
 )
 
 type Handler struct {
-	Database *redis.Client
+	RedisRepository repository.RedisRepositoryInterface
 }
 
-func NewHandler(database *redis.Client) Handler {
-	return Handler{Database: database}
+func NewHandler(rep repository.RedisRepositoryInterface) Handler {
+	return Handler{RedisRepository: rep}
 }
 
 type Keys struct {
@@ -83,27 +79,12 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 		pattern = pattern + filter + pattern
 	}
 
-	ctx := context.Background()
-
-	iter := h.Database.Scan(ctx, 0, pattern, 0).Iterator()
-
-	allKeys := []Keys{}
-
-	for iter.Next(ctx) {
-		keys := Keys{
-			Key:    iter.Val(),
-			Value:  h.Database.Get(ctx, iter.Val()).Val(),
-			Expire: int(h.Database.TTL(ctx, iter.Val()).Val().Seconds()),
-		}
-		allKeys = append(allKeys, keys)
-	}
-
-	if err := iter.Err(); err != nil {
+	allKeys, err := h.RedisRepository.GetAllKeys(pattern)
+	if err != nil {
 		panic(err)
 	}
 
 	count := len(allKeys)
-	log.Println(count)
 
 	contentRange := "keys 0-" + strconv.Itoa(count) + "/" + strconv.Itoa(count)
 	w.Header().Set("Content-Range", contentRange)
@@ -128,35 +109,17 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 		separator = SEPARATOR
 	}
 
-	ctx := context.Background()
-
 	pattern := "*" + separator + "*"
 	filter := getFilter(r)
 	if filter != "" {
 		pattern = "*" + filter + "*" + separator + "*"
 	}
-
-	iter := h.Database.Scan(ctx, 0, pattern, 0).Iterator()
-	allKeys := []SplitKeys{}
-
-	for iter.Next(ctx) {
-		curentKey := iter.Val()
-		splitKey := strings.Split(curentKey, "::")
-		splitKeyLen := len(splitKey)
-		if splitKeyLen > 1 {
-			keys := SplitKeys{
-				Key:       splitKey[0],
-				Separator: separator,
-			}
-			allKeys = append(allKeys, keys)
-		}
+	allKeys, err := h.RedisRepository.GroupKeys(pattern, separator)
+	if err != nil {
+		panic(err)
 	}
 
 	allKeys = removeDuplicate(allKeys)
-
-	if err := iter.Err(); err != nil {
-		panic(err)
-	}
 
 	ran := getRange(r)
 
@@ -177,8 +140,8 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(allKeys)
 }
 
-func removeDuplicate(keys []SplitKeys) []SplitKeys {
-	result := []SplitKeys{}
+func removeDuplicate(keys []repository.SplitKeys) []repository.SplitKeys {
+	result := []repository.SplitKeys{}
 	seen := map[string]string{}
 
 	for _, val := range keys {
@@ -194,11 +157,7 @@ func removeDuplicate(keys []SplitKeys) []SplitKeys {
 func (h Handler) DeleteKey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	key := chi.URLParam(r, "key")
-	log.Println(key)
-	ctx := context.Background()
-
-	h.Database.Del(ctx, key)
-	h.Database.Expire(ctx, key, -1)
+	h.RedisRepository.DeleteKey(key)
 
 	json.NewEncoder(w).Encode(JSON{"status": "ok"})
 }
@@ -213,14 +172,8 @@ func (h Handler) DeleteByGroup(w http.ResponseWriter, r *http.Request) {
 		separator = SEPARATOR
 	}
 
-	ctx := context.Background()
-
-	iter := h.Database.Scan(ctx, 0, group+separator+"*", 0).Iterator()
-	for iter.Next(ctx) {
-		h.Database.Del(ctx, iter.Val())
-		h.Database.Expire(ctx, iter.Val(), -1)
-	}
-	if err := iter.Err(); err != nil {
+	err := h.RedisRepository.DeleteByGroup(group + separator + "*")
+	if err != nil {
 		panic(err)
 	}
 
@@ -230,16 +183,7 @@ func (h Handler) DeleteByGroup(w http.ResponseWriter, r *http.Request) {
 func (h Handler) DeleteAllKeys(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//uuidStr := chi.URLParam(r, "uuid")
-
-	ctx := context.Background()
-
-	iter := h.Database.Scan(ctx, 0, "*", 0).Iterator()
-	for iter.Next(ctx) {
-		h.Database.Del(ctx, iter.Val())
-	}
-	if err := iter.Err(); err != nil {
-		panic(err)
-	}
+	h.RedisRepository.DeleteAllKeys()
 
 	json.NewEncoder(w).Encode(JSON{"status": "ok"})
 }
@@ -248,14 +192,10 @@ func (h Handler) GetKey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	key := chi.URLParam(r, "key")
 
-	ctx := context.Background()
-
-	value := h.Database.Get(ctx, key).Val()
-	keyExpire := int(h.Database.TTL(ctx, key).Val().Seconds())
-	keyCollection := Keys{
-		Key:    key,
-		Value:  value,
-		Expire: keyExpire,
+	keyCollection, err := h.RedisRepository.GetKey(key)
+	if err != nil {
+		panic(err)
 	}
+
 	json.NewEncoder(w).Encode(keyCollection)
 }

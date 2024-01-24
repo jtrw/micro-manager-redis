@@ -17,6 +17,7 @@ import (
 	"io/fs"
 	"log"
 	manageHandler "micro-manager-redis/app/handler"
+	repository "micro-manager-redis/app/repository"
 	"net/http"
 	"os"
 	"strings"
@@ -76,7 +77,8 @@ func (s Server) routes() chi.Router {
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
 
-	handler := manageHandler.NewHandler(s.Client)
+	redRep := repository.NewRedisRepository(s.Client)
+	handler := manageHandler.NewHandler(redRep)
 	authHandle := manageHandler.NewAuth(s.AuthLogin, s.AuthPassword)
 
 	router.Route(
