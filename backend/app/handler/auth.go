@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
-	"io"
-	//"github.com/go-chi/render"
-	//"log"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/json"
+	"io"
 	"net/http"
 )
 
