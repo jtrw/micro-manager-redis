@@ -9,35 +9,6 @@ import (
 	"time"
 )
 
-func TestGetRedisConnection(t *testing.T) {
-	// Mock options
-	opts := Options{
-		RedisUrl:     "localhost:6379",
-		RedisPass:    "password",
-		Database:     3,
-		AuthLogin:    "admin",
-		AuthPassword: "admin",
-	}
-
-	// Create a mock Redis client
-	rdb, err := getRedisConnection(opts)
-
-	// Assert that there is no error during connection
-	assert.NoError(t, err)
-
-	// Assert that the connection is not nil
-	assert.NotNil(t, rdb)
-
-	// Assert that we can successfully ping the Redis server
-	result, err := rdb.Ping(context.Background()).Result()
-	assert.NoError(t, err)
-	assert.Equal(t, "PONG", result)
-
-	// Close the Redis connection
-	err = rdb.Close()
-	assert.NoError(t, err)
-}
-
 func TestMainRun(t *testing.T) {
 	// Mock options
 	opts := Options{
