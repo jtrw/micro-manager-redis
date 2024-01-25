@@ -31,11 +31,6 @@ func Auth(token string) func(http.Handler) http.Handler {
 			authorization := r.Header.Get("Authorization")
 			headerToken := strings.TrimSpace(strings.Replace(authorization, "Bearer", "", 1))
 
-			if headerToken == "" {
-				http.Error(w, "Invalid token", http.StatusUnauthorized)
-				return
-			}
-
 			if headerToken != token {
 				http.Error(w, "Invalid token", http.StatusUnauthorized)
 				return

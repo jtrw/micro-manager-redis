@@ -30,6 +30,23 @@ func TestCorsMiddleware(t *testing.T) {
 	assert.Equal(t, "OK", rr.Body.String())
 }
 
+func Test_CorsMethodOptionsMiddleware(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+
+	req, err := http.NewRequest("OPTIONS", "/test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	middleware := Cors(handler)
+	middleware.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusNoContent, rr.Code)
+}
+
 func TestAuthMiddleware(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Authorized"))
