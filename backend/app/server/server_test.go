@@ -2,12 +2,15 @@ package server
 
 import (
 	"context"
+	//	"log"
 	//"fmt"
+	//	"embed"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	//"strings"
 	"testing"
 	"time"
@@ -34,4 +37,36 @@ func TestRest_RobotsCheck(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, "User-agent: *\nDisallow: /\n", string(body))
+}
+
+func TestRest_FileServerNotFound(t *testing.T) {
+	srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345", WebRoot: "./web"}
+
+	ts := httptest.NewServer(srv.routes())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/web")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestRest_FileServer(t *testing.T) {
+	tmp := os.TempDir()
+
+	srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345", WebRoot: tmp}
+
+	ts := httptest.NewServer(srv.routes())
+	defer ts.Close()
+
+	testHTMLName := "test-manager-redis.html"
+	testHTMLFile := tmp + testHTMLName
+	err := os.WriteFile(testHTMLFile, []byte("some html"), 0o700)
+	assert.NoError(t, err)
+
+	resp, err := http.Get(ts.URL + "/web/" + testHTMLName)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "some html", string(body))
 }
