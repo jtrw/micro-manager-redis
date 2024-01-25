@@ -115,7 +115,7 @@ func (s Server) routes() chi.Router {
 
 func addFileServer(r chi.Router, embedFS embed.FS, webRoot, version string) {
 	var webFS http.Handler
-
+	log.Printf("[INFO] webRoot: %s", webRoot)
 	if _, err := os.Stat(webRoot); err == nil {
 		log.Printf("[INFO] run file server from %s from the disk", webRoot)
 		webFS = http.FileServer(http.Dir(webRoot))
