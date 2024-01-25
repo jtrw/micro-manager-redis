@@ -58,7 +58,7 @@ func getFilter(r *http.Request) string {
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println(jsonFilter)
+
 		if jsonFilter["key"] != nil {
 			filter = jsonFilter["key"].(string)
 			return filter
