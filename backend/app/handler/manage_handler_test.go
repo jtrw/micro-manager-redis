@@ -109,6 +109,38 @@ func Test_AllKeys_Range(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func Test_AllKeys_Filter(t *testing.T) {
+	mockRepo := new(MockRedisRepository)
+	handler := NewHandler(mockRepo)
+
+	// Mock repository method
+	mockRepo.On("GetAllKeys", mock.Anything).
+		Return([]repository.Keys{
+			{Key: "key1", Value: "value1", Expire: 0},
+		}, nil)
+
+	req, err := http.NewRequest("GET", `/keys?filter={"key":"key1"}`, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.AllKeys(rr, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	// Assert the response body or any other expectations
+	var result []repository.Keys
+	err = json.Unmarshal(rr.Body.Bytes(), &result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, "key1", result[0].Key)
+
+	// Assert that the mocked repository method was called with the expected argument
+	mockRepo.AssertExpectations(t)
+}
+
 func TestGroupKeys(t *testing.T) {
 	mockRepo := new(MockRedisRepository)
 	handler := NewHandler(mockRepo)
