@@ -54,10 +54,6 @@ func TestMainRun(t *testing.T) {
 		AuthPassword:   "admin",
 	}
 
-	// Create a mock Redis client
-	rdb, err := getRedisConnection(opts)
-	assert.NoError(t, err)
-
 	// Mock context
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -72,7 +68,6 @@ func TestMainRun(t *testing.T) {
 		WebFS:          webFS,
 		Secret:         opts.Secret,
 		Version:        revision,
-		Client:         rdb,
 		AuthLogin:      opts.AuthLogin,
 		AuthPassword:   opts.AuthPassword,
 	}
