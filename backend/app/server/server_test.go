@@ -2,15 +2,19 @@ package server
 
 import (
 	"context"
+	//"fmt"
 	//	"log"
+
 	//"fmt"
 	//	"embed"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	//"strings"
 	"testing"
 	"time"
@@ -51,22 +55,25 @@ func TestRest_FileServerNotFound(t *testing.T) {
 }
 
 func TestRest_FileServer(t *testing.T) {
-	tmp := os.TempDir()
+	//tmp := os.TempDir()
 
-	srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345", WebRoot: tmp}
+	path, _ := os.Getwd()
+	path = path + "/../../web"
+
+	srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345", WebRoot: path}
 
 	ts := httptest.NewServer(srv.routes())
 	defer ts.Close()
 
-	testHTMLName := "test-manager-redis.html"
-	testHTMLFile := tmp + testHTMLName
-	err := os.WriteFile(testHTMLFile, []byte("some html"), 0o700)
-	assert.NoError(t, err)
+	testHTMLName := "index.html"
+	//testHTMLFile := tmp + testHTMLName
+	//err := os.WriteFile(testHTMLFile, []byte("some html"), 0o700)
+	//assert.NoError(t, err)
 
 	resp, err := http.Get(ts.URL + "/web/" + testHTMLName)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, "some html", string(body))
+	assert.Equal(t, "Stubs for frontends\n", string(body))
 }
