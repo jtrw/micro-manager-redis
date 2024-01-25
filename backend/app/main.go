@@ -63,7 +63,7 @@ func main() {
 
 	rdb, err := getRedisConnection(opts)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("[ERROR] failed, %+v", err)
 	}
 
 	srv := server.Server{
