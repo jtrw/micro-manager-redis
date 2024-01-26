@@ -1,5 +1,8 @@
 # micro-manager-caches-keys
 
+[![Build](https://github.com/jtrw/micro-manager-redis/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/jtrw/micro-manager-redis/actions)
+[![codecov](https://codecov.io/gh/jtrw/micro-manager-redis/graph/badge.svg?token=R4WZPK20B7)](https://codecov.io/gh/jtrw/micro-manager-redis)
+
 Nginx configuration
 ```
 location /index.html {
