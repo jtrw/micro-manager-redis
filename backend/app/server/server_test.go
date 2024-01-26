@@ -55,8 +55,6 @@ func TestRest_FileServerNotFound(t *testing.T) {
 }
 
 func TestRest_FileServer(t *testing.T) {
-	//tmp := os.TempDir()
-
 	path, _ := os.Getwd()
 	path = path + "/../../web"
 
@@ -66,9 +64,6 @@ func TestRest_FileServer(t *testing.T) {
 	defer ts.Close()
 
 	testHTMLName := "index.html"
-	//testHTMLFile := tmp + testHTMLName
-	//err := os.WriteFile(testHTMLFile, []byte("some html"), 0o700)
-	//assert.NoError(t, err)
 
 	resp, err := http.Get(ts.URL + "/web/" + testHTMLName)
 	require.NoError(t, err)
@@ -76,4 +71,20 @@ func TestRest_FileServer(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, "Stubs for frontends\n", string(body))
+}
+
+func TestRest_FileServerNoFound(t *testing.T) {
+	path, _ := os.Getwd()
+	path = path + "/../../web"
+
+	srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345", WebRoot: path}
+
+	ts := httptest.NewServer(srv.routes())
+	defer ts.Close()
+
+	testHTMLName := "index.html"
+
+	resp, err := http.Get(ts.URL + "/web/test/" + testHTMLName)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }

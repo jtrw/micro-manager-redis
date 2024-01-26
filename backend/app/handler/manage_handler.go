@@ -81,7 +81,8 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 
 	allKeys, err := h.RedisRepository.GetAllKeys(pattern)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	count := len(allKeys)
@@ -116,7 +117,8 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 	}
 	allKeys, err := h.RedisRepository.GroupKeys(pattern, separator)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	allKeys = removeDuplicate(allKeys)
@@ -174,7 +176,8 @@ func (h Handler) DeleteByGroup(w http.ResponseWriter, r *http.Request) {
 
 	err := h.RedisRepository.DeleteByGroup(group + separator + "*")
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	json.NewEncoder(w).Encode(JSON{"status": "ok"})
@@ -194,7 +197,8 @@ func (h Handler) GetKey(w http.ResponseWriter, r *http.Request) {
 
 	keyCollection, err := h.RedisRepository.GetKey(key)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	json.NewEncoder(w).Encode(keyCollection)
