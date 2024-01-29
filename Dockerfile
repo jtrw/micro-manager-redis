@@ -38,7 +38,7 @@ WORKDIR /build/backend
 # install gcc in order to be able to go test package with -race
 RUN apk --no-cache add gcc libc-dev
 
-RUN apk add --no-cache --update git tzdata ca-certificates
+RUN apk add --no-cache --update git tzdata ca-certificates bash
 
 RUN go mod vendor
 
@@ -49,6 +49,16 @@ RUN \
     echo "version=$version"
 
 RUN echo go version: `go version`
+
+# run tests
+#RUN \
+#    cd app && \
+#    if [ -z "$SKIP_BACKEND_TEST" ] ; then \
+#        CGO_ENABLED=1 go test -race -p 1 -timeout="${BACKEND_TEST_TIMEOUT:-300s}" -covermode=atomic \
+#    else \
+#        echo "Skip tests" \
+#    ; fi
+
 
 RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
 
