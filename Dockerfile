@@ -67,6 +67,14 @@ FROM alpine
 
 ARG GITHUB_SHA
 
+LABEL org.opencontainers.image.authors="Nil Borodulia <nil.borodulia@gmail.com>" \
+      org.opencontainers.image.description="Manager contents redis keys" \
+      org.opencontainers.image.documentation="https://github.com/jtrw/micro-manager-redis" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/jtrw/micro-manager-redis.git" \
+      org.opencontainers.image.title="ManagerRedis" \
+      org.opencontainers.image.revision="${GITHUB_SHA}"
+
 WORKDIR /srv
 
 #COPY docker-init.sh /srv/init.sh
