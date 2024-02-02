@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        MANAGE_RKEYS_URL: ${MANAGE_RKEYS_URL}
+        ARG_MANAGE_RKEYS_URL: ${MANAGE_RKEYS_URL}
     ports:
       - "8080:8080"
     extra_hosts:

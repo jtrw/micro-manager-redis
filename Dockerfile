@@ -3,8 +3,8 @@ FROM --platform=$BUILDPLATFORM node:21.4.0-alpine AS build-frontend
 ARG SKIP_FRONTEND_TEST
 ARG SKIP_FRONTEND_BUILD
 
-ARG MANAGE_RKEYS_URL
-ENV MANAGE_RKEYS_URL=$MANAGE_RKEYS_URL
+ARG ARG_MANAGE_RKEYS_URL
+ENV MANAGE_RKEYS_URL=${ARG_MANAGE_RKEYS_URL}
 
 WORKDIR /srv/frontend/
 
@@ -65,7 +65,13 @@ RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
 #FROM scratch
 FROM alpine
 
+ARG ARG_MANAGE_RKEYS_URL
+ENV MANAGE_RKEYS_URL=${ARG_MANAGE_RKEYS_URL}
 ARG GITHUB_SHA
+
+RUN echo "prepare environment"
+# replace {% MANAGE_RKEYS_URL %} by content of MANAGE_RKEYS_URL variable
+RUN find . -regex '.*\.\(html\|js\|mjs\)$' -print -exec sed -i "s|{% MANAGE_RKEYS_URL %}|${MANAGE_RKEYS_URL}|g" {} \;
 
 LABEL org.opencontainers.image.authors="Nil Borodulia <nil.borodulia@gmail.com>" \
       org.opencontainers.image.description="Manager contents redis keys" \
@@ -77,15 +83,16 @@ LABEL org.opencontainers.image.authors="Nil Borodulia <nil.borodulia@gmail.com>"
 
 WORKDIR /srv
 
-#COPY docker-init.sh /srv/init.sh
+COPY docker-init.sh /srv/init.sh
+RUN chmod +x /srv/init.sh
 
 COPY --from=build-backend /build/backend/app/rkeys /srv/rkeys
 COPY --from=build-frontend /srv/frontend/dist/ /srv/web/
+
+
 #RUN chown -R app:app /srv
 #RUN ln -s /srv/rkeys /usr/bin/rkeys
 
 #EXPOSE 8080
-#HEALTHCHECK --interval=30s --timeout=3s CMD curl --fail http://localhost:8080/ping || exit 1
-#HEALTHCHECK --interval=5s --timeout=3s CMD wget -qO- http://127.0.0.1:8080/ping | grep -q 'pong' || exit 1
-CMD ["/srv/rkeys", "server"]
-#ENTRYPOINT ["/srv/rkeys", "server"]
+#CMD ["/srv/rkeys"]
+ENTRYPOINT ["/srv/init.sh"]
