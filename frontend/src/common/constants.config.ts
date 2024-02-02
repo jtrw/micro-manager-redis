@@ -4,9 +4,12 @@ export const BASE_URL = getBaseUrl();
 export function getBaseUrl() {
   //const baseUrl = "http://127.0.0.1:8080";
   //const baseUrl = window.mradis_config.host ?? process.env.MANAGE_RKEYS_URL;
-  const baseUrl = process.env.MANAGE_RKEYS_URL;
-
-  if (!baseUrl) {
+  let baseUrl;
+  if (process.env.MANAGE_RKEYS_URL) {
+    baseUrl = process.env.MANAGE_RKEYS_URL;
+  } else if (process.env.RKEYS_URL) {
+    baseUrl = process.env.RKEYS_URL;
+  } else {
     throw new Error(`RKeys: rkeys_config.host wasn't configured.`);
   }
 
