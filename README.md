@@ -25,13 +25,19 @@ To install Micro Manager Redis, follow these steps for backend:
 git clone https://github.com/your-username/micro-manager-redis.git
 
 # Change into the project directory
-cd micro-manager-redis
+cd micro-manager-redis/backend
 
 # Build the application
 go build -o micro-manager-redis main.go
 
 # Run the application
 ./micro-manager-redis
+```
+
+For installation of the web UI, follow these steps:
+```bash
+cd frontend
+yarn dev
 ```
 
 ## Usage
