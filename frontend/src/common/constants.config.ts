@@ -2,9 +2,8 @@ export const API_BASE = "/api/v1";
 export const BASE_URL = getBaseUrl();
 
 export function getBaseUrl() {
-  //const baseUrl = "http://127.0.0.1:8080";
-  //const baseUrl = window.mradis_config.host ?? process.env.MANAGE_RKEYS_URL;
   let baseUrl;
+
   if (process.env.MANAGE_RKEYS_URL) {
     baseUrl = process.env.MANAGE_RKEYS_URL;
   } else if (process.env.RKEYS_URL) {
