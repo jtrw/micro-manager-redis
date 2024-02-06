@@ -65,13 +65,9 @@ RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
 #FROM scratch
 FROM alpine
 
-ARG ARG_MANAGE_RKEYS_URL
-ENV MANAGE_RKEYS_URL=${ARG_MANAGE_RKEYS_URL}
+#ARG ARG_MANAGE_RKEYS_URL
+#ENV MANAGE_RKEYS_URL=${ARG_MANAGE_RKEYS_URL}
 ARG GITHUB_SHA
-
-RUN echo "prepare environment"
-# replace {% MANAGE_RKEYS_URL %} by content of MANAGE_RKEYS_URL variable
-RUN find . -regex '.*\.\(html\|js\|mjs\)$' -print -exec sed -i "s|{% MANAGE_RKEYS_URL %}|${MANAGE_RKEYS_URL}|g" {} \;
 
 LABEL org.opencontainers.image.authors="Nil Borodulia <nil.borodulia@gmail.com>" \
       org.opencontainers.image.description="Manager contents redis keys" \
@@ -88,7 +84,6 @@ RUN chmod +x /srv/init.sh
 
 COPY --from=build-backend /build/backend/app/rkeys /srv/rkeys
 COPY --from=build-frontend /srv/frontend/dist/ /srv/web/
-
 
 #RUN chown -R app:app /srv
 #RUN ln -s /srv/rkeys /usr/bin/rkeys
