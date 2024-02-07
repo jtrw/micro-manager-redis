@@ -2,21 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io"
 	"log"
-	//"github.com/redis/go-redis/v9"
 	"math/rand"
 	server "micro-manager-redis/app/server"
 	"net/http"
+	"os"
 	"strconv"
 	"syscall"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	//"net/http/httptest"
-	"fmt"
-	"io"
-	"os"
 	"testing"
 	"time"
 )

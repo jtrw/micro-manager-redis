@@ -1,10 +1,6 @@
 package main
 
 import (
-	//"log"
-	//"net/http"
-	//"os"
-	//"time"
 	"context"
 	"embed"
 	"github.com/jessevdk/go-flags"
