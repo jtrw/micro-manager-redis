@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-
 	"crypto/md5"
 	"embed"
 	"fmt"

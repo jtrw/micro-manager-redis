@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	//"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"micro-manager-redis/app/repository"

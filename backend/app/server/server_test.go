@@ -2,20 +2,12 @@ package server
 
 import (
 	"context"
-	//"fmt"
-	//	"log"
-
-	//"fmt"
-	//	"embed"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	//"strings"
 	"testing"
 	"time"
 )
