@@ -3,9 +3,6 @@ FROM --platform=$BUILDPLATFORM node:21.4.0-alpine AS build-frontend
 ARG SKIP_FRONTEND_TEST
 ARG SKIP_FRONTEND_BUILD
 
-ARG ARG_MANAGE_RKEYS_URL
-ENV MANAGE_RKEYS_URL=${ARG_MANAGE_RKEYS_URL}
-
 WORKDIR /srv/frontend/
 
 COPY ./frontend/ /srv/frontend/
@@ -65,8 +62,6 @@ RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
 #FROM scratch
 FROM alpine
 
-#ARG ARG_MANAGE_RKEYS_URL
-#ENV MANAGE_RKEYS_URL=${ARG_MANAGE_RKEYS_URL}
 ARG GITHUB_SHA
 
 LABEL org.opencontainers.image.authors="Nil Borodulia <nil.borodulia@gmail.com>" \
