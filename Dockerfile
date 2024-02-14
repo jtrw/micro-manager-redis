@@ -29,7 +29,7 @@ ARG GITHUB_SHA
 
 ADD backend /build/backend
 COPY --from=build-frontend /srv/frontend/dist/ /build/backend/web/
-#RUN find /build/backend/web/ -regex '.*\.\(html\|js\|mjs\)$' -print -exec sed -i "s|{% RKEYS_URL %}|http://127.0.0.1:8080|g" {} \;
+
 WORKDIR /build/backend
 
 # install gcc in order to be able to go test package with -race
@@ -59,7 +59,6 @@ RUN echo go version: `go version`
 
 RUN cd app && go build -o rkeys -ldflags "-X main.revision=${version} -s -w"
 
-#FROM scratch
 FROM alpine
 
 ARG GITHUB_SHA
@@ -83,6 +82,4 @@ COPY --from=build-frontend /srv/frontend/dist/ /srv/web/
 #RUN chown -R app:app /srv
 #RUN ln -s /srv/rkeys /usr/bin/rkeys
 
-#EXPOSE 8080
-#CMD ["/srv/rkeys"]
 ENTRYPOINT ["/srv/init.sh"]
