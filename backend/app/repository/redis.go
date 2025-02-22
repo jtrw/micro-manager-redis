@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
-	"github.com/redis/go-redis/v9"
 	"strings"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Keys struct {
@@ -131,4 +132,20 @@ func (r *RedisRepository) DeleteByGroup(pattern string) error {
 		return err
 	}
 	return nil
+}
+
+func (r *RedisRepository) GetKeySpaces() (Keys, error) {
+	//redis-cli info keyspace
+	ctx := context.Background()
+
+	value, err := redis.NewStringCmd(ctx, "info", "keyspace").Result()
+	if err != nil {
+		return Keys{}, err
+	}
+
+	return Keys{
+		Key:    "keyspace",
+		Value:  value,
+		Expire: 0,
+	}, nil
 }
