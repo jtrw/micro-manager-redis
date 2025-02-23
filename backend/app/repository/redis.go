@@ -143,6 +143,24 @@ func (r *RedisRepository) GetKeySpaces() (Keys, error) {
 		return Keys{}, err
 	}
 
+	//db0:keys=7,expires=7,avg_ttl=51758148
+	//db3:keys=576,expires=5,avg_ttl=849200
+	//db4:keys=216,expires=216,avg_ttl=1466696
+
+	rows := strings.Split(value, "\n")
+	dbs := []Keys{}
+	for _, row := range rows {
+		keyRow := strings.Split(row, ":")
+		if len(keyRow) > 1 {
+			value = keyRow[0]
+		}
+		dbs = append(dbs, Keys{
+			Key:    "keyspace",
+			Value:  value,
+			Expire: 0,
+		})
+	}
+
 	return Keys{
 		Key:    "keyspace",
 		Value:  value,
