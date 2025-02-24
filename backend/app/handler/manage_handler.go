@@ -208,7 +208,12 @@ func (h Handler) GetKey(w http.ResponseWriter, r *http.Request) {
 func (h Handler) GetKeyspaces(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	h.RedisRepository.GetKeySpaces()
+	dbs, err := h.RedisRepository.GetActiveKeySpaces()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	json.NewEncoder(w).Encode(JSON{"status": "ok"})
+	json.NewEncoder(w).Encode(dbs)
 }

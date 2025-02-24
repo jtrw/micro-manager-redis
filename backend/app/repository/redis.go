@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -32,7 +30,7 @@ type RedisRepositoryInterface interface {
 	DeleteKey(key string)
 	DeleteAllKeys()
 	DeleteByGroup(pattern string) error
-	GetKeySpaces() ([]string, error)
+	GetActiveKeySpaces() ([]int, error)
 }
 
 func NewRedisRepository(database *redis.Client) RedisRepositoryInterface {
@@ -138,8 +136,7 @@ func (r *RedisRepository) DeleteByGroup(pattern string) error {
 	return nil
 }
 
-func (r *RedisRepository) GetKeySpaces() ([]int, error) {
-	//redis-cli info keyspace
+func (r *RedisRepository) GetActiveKeySpaces() ([]int, error) {
 	ctx := context.Background()
 
 	value, err := r.Database.InfoMap(ctx, "keyspace").Result()
@@ -147,58 +144,32 @@ func (r *RedisRepository) GetKeySpaces() ([]int, error) {
 		return nil, err
 	}
 
-	// config, err := r.Database.ConfigGet(ctx, "databases").Result()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	dbs := []string{}
 	dbsInt := []int{}
-	for db, keyspace := range value {
-		// get all keys from keyspace
 
-		fmt.Printf("db%v: %v\n", db, keyspace)
+	for db, keyspace := range value {
 		for key, _ := range keyspace {
-			dbs = append(dbs, key)
-			//replace db and convert to int
 			db = strings.Replace(key, "db", "", -1)
-			log.Printf("db: %v\n", db)
 			dbInt, _ := strconv.Atoi(db)
 			dbsInt = append(dbsInt, dbInt)
 		}
 	}
 
-	fmt.Printf("dbs: %v\n", dbs)
-	fmt.Printf("dbsInt: %v\n", dbsInt)
-	for _, db := range dbsInt {
-		fmt.Printf("db: %v\n", db)
+	return dbsInt, nil
+}
+
+func (r *RedisRepository) GetAllDatabases() ([]string, error) {
+	ctx := context.Background()
+
+	value, err := r.Database.ConfigGet(ctx, "databases").Result()
+	if err != nil {
+		return nil, err
 	}
 
-	// for db, keyspace := range value {
-	// 	fmt.Printf("db%v: %v\n", db, keyspace)
-	// }
+	var dbs []string
 
-	//fmt.Printf("value: %v\n", config)
+	for _, row := range value {
+		dbs = append(dbs, row)
+	}
 
-	//db0:keys=7,expires=7,avg_ttl=51758148
-	//db3:keys=576,expires=5,avg_ttl=849200
-	//db4:keys=216,expires=216,avg_ttl=1466696
-
-	// rows := strings.Split(value, "\n")
-	// //count := len(rows)
-
-	// var dbs []string
-
-	// for _, row := range rows {
-	// 	keyRow := strings.Split(row, ":")
-	// 	if len(keyRow) > 1 {
-	// 		value = keyRow[0]
-	// 	}
-
-	// 	dbs = append(dbs, value)
-
-	// }
-
-	// log.Printf("dbs: %v", dbs)
-
-	return nil, nil
+	return dbs, nil
 }
