@@ -2,12 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi/v5"
 	"log"
 	repository "micro-manager-redis/app/repository"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type JSON map[string]interface{}
@@ -202,4 +203,12 @@ func (h Handler) GetKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(keyCollection)
+}
+
+func (h Handler) GetKeyspaces(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	h.RedisRepository.GetKeySpaces()
+
+	json.NewEncoder(w).Encode(JSON{"status": "ok"})
 }
