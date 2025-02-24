@@ -5,14 +5,6 @@ import (
 	"crypto/md5"
 	"embed"
 	"fmt"
-	"github.com/didip/tollbooth/v7"
-	"github.com/didip/tollbooth_chi"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
-	"github.com/jtrw/go-rest"
-	"github.com/pkg/errors"
-	"github.com/redis/go-redis/v9"
 	"io/fs"
 	"log"
 	manageHandler "micro-manager-redis/app/handler"
@@ -21,6 +13,15 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/didip/tollbooth/v7"
+	"github.com/didip/tollbooth_chi"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
+	"github.com/jtrw/go-rest"
+	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	//"fmt"
 )
 
@@ -92,6 +93,7 @@ func (s Server) routes() chi.Router {
 			r.Delete("/keys", handler.DeleteAllKeys)
 			r.Get("/keys-group", handler.GroupKeys)
 			r.Delete("/keys-group/{group}", handler.DeleteByGroup)
+			r.Get("/keyspaces", handler.GetKeyspaces)
 		},
 	)
 	router.Route(
