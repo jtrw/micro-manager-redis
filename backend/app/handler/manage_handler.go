@@ -217,3 +217,26 @@ func (h Handler) GetKeyspaces(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(dbs)
 }
+
+func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	dbs, err := h.RedisRepository.GetActiveKeySpaces()
+
+	countDb, _ := h.RedisRepository.GetCountDb()
+
+	listDbs := make([]int, countDb)
+	for _, db := range dbs {
+		listDbs[db] = 1
+	}
+
+	log.Printf("listDbs: %v", listDbs)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(listDbs)
+}

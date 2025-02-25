@@ -94,6 +94,7 @@ func (s Server) routes() chi.Router {
 			r.Get("/keys-group", handler.GroupKeys)
 			r.Delete("/keys-group/{group}", handler.DeleteByGroup)
 			r.Get("/keyspaces", handler.GetKeyspaces)
+			r.Get("/databases", handler.GetDatabases)
 		},
 	)
 	router.Route(

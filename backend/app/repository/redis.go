@@ -31,6 +31,7 @@ type RedisRepositoryInterface interface {
 	DeleteAllKeys()
 	DeleteByGroup(pattern string) error
 	GetActiveKeySpaces() ([]int, error)
+	GetCountDb() (int, error)
 }
 
 func NewRedisRepository(database *redis.Client) RedisRepositoryInterface {
@@ -157,19 +158,23 @@ func (r *RedisRepository) GetActiveKeySpaces() ([]int, error) {
 	return dbsInt, nil
 }
 
-func (r *RedisRepository) GetAllDatabases() ([]string, error) {
+func (r *RedisRepository) GetCountDb() (int, error) {
 	ctx := context.Background()
 
 	value, err := r.Database.ConfigGet(ctx, "databases").Result()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	var dbs []string
-
-	for _, row := range value {
-		dbs = append(dbs, row)
+	if len(value) == 0 {
+		return 0, nil
 	}
 
-	return dbs, nil
+	databases, err := strconv.Atoi(value["databases"])
+
+	if err != nil {
+		return 0, err
+	}
+
+	return databases, nil
 }
