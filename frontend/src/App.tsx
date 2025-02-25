@@ -10,6 +10,7 @@ import { authProvider } from "./authProvider";
 import { BASE_URL, API_BASE } from "./common/constants.config";
 import { KeysList } from "./keys";
 import { KeysGroupList } from "./keys-group";
+import { MyLayout } from "./MyLayout";
 
 const httpClient = (url, options = {}) => {
   if (!options.headers) {
@@ -24,7 +25,11 @@ const httpClient = (url, options = {}) => {
 let dataProvider = simpleRestProvider(`${BASE_URL}${API_BASE}`, httpClient);
 
 export const App = () => (
-  <Admin dataProvider={dataProvider} authProvider={authProvider}>
+  <Admin
+    dataProvider={dataProvider}
+    authProvider={authProvider}
+    layout={MyLayout}
+  >
     <Resource
       name="keys"
       list={KeysList}
