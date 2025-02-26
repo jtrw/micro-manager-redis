@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"sort"
 )
 
 type JSON map[string]interface{}
@@ -222,21 +223,65 @@ func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	dbs, err := h.RedisRepository.GetActiveKeySpaces()
+	if err != nil {
+        log.Println(err)
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
 
 	countDb, _ := h.RedisRepository.GetCountDb()
 
-	listDbs := make([]int, countDb)
+	dbMap := make(map[int]int)
+
+	for i := 0; i < countDb; i++ {
+        dbMap[i] = 0
+    }
+
 	for _, db := range dbs {
-		listDbs[db] = 1
+		dbMap[db] = 1
 	}
 
-	log.Printf("listDbs: %v", listDbs)
+	keys := make([]int, 0, len(dbMap))
+    for k := range dbMap {
+        keys = append(keys, k)
+    }
+	sort.Slice(keys, func(i, j int) bool {
+        if dbMap[keys[i]] != dbMap[keys[j]] {
+            return dbMap[keys[i]] > dbMap[keys[j]] // 1 буде перед 0
+        }
+        return keys[i] < keys[j] // якщо значення однакові, сортуємо за індексом
+    })
 
+    // Створюємо новий відсортований map
+    sortedMap := make(map[int]int)
+    for _, k := range keys {
+        sortedMap[k] = dbMap[k]
+    }
+
+	log.Printf("sortedMap: %v", sortedMap)
+    json.NewEncoder(w).Encode(sortedMap)
+}
+
+func (h Handler) SetDatabase(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
+	//database from body json {"database":"0"}
+	var db JSON
+	err := json.NewDecoder(r.Body).Decode(&db)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	json.NewEncoder(w).Encode(listDbs)
+	dbInt, err := strconv.Atoi(db["database"].(string))
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	log.Printf("dbInt: %v", dbInt)
+	h.RedisRepository.SetActiveKeySpace(dbInt)
+
+	json.NewEncoder(w).Encode(JSON{"status": "ok"})
 }
