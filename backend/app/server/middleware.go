@@ -1,7 +1,10 @@
 package server
 
 import (
+	"context"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -11,7 +14,7 @@ func Cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*") // change this later
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "Control-Request, Content-Range, Request, Range, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control")
+		w.Header().Set("Access-Control-Allow-Headers", "Control-Request, Content-Range, Request, Range, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Database")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Expose-Headers", "Content-Range")
 
@@ -40,4 +43,21 @@ func Auth(token string) func(http.Handler) http.Handler {
 		}
 		return http.HandlerFunc(fn)
 	}
+}
+
+func Database(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		database := r.Header.Get("X-Database")
+
+		if database != "" {
+			//remove db from database
+			database = strings.TrimPrefix(database, "db")
+			dbIndx, _ := strconv.Atoi(database)
+			log.Printf("Database: %d", dbIndx)
+
+			r.WithContext(context.WithValue(r.Context(), "database", dbIndx))
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

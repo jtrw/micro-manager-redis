@@ -24,7 +24,7 @@ type RedisRepository struct {
 }
 
 type RedisRepositoryInterface interface {
-	GetAllKeys(pattern string) ([]Keys, error)
+	GetAllKeys(pattern string, dbIndex int) ([]Keys, error)
 	GroupKeys(pattern, separator string) ([]SplitKeys, error)
 	GetKey(key string) (Keys, error)
 	DeleteKey(key string)
@@ -39,8 +39,10 @@ func NewRedisRepository(database *redis.Client) RedisRepositoryInterface {
 	return &RedisRepository{Database: database}
 }
 
-func (r *RedisRepository) GetAllKeys(pattern string) ([]Keys, error) {
+func (r *RedisRepository) GetAllKeys(pattern string, dbIndex int) ([]Keys, error) {
 	ctx := context.Background()
+
+	r.SetActiveKeySpace(dbIndex)
 
 	iter := r.Database.Scan(ctx, 0, pattern, 0).Iterator()
 

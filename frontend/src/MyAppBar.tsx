@@ -45,27 +45,27 @@ const SelectDbButton = () => {
     const newDb = event.target.value;
     setDb(newDb);
     localStorage.setItem('selectedDb', newDb);
-
-    try {
-      const dbIndex = newDb.replace('db', '');
+    window.location.reload();
+    // try {
+    //   const dbIndex = newDb.replace('db', '');
       
-      fetch(`${BASE_URL}${API_BASE}/set-database`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ database: dbIndex })
-      }).then(response => {
-        if (response.ok) {
-          window.location.reload();
-        } else {
-          console.error('Failed to set database');
-        }
-      });
-    } catch (error) {
-      console.error('Error setting database:', error);
-    }
+    //   fetch(`${BASE_URL}${API_BASE}/set-database`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Authorization': `Bearer ${token}`,
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({ database: dbIndex })
+    //   }).then(response => {
+    //     if (response.ok) {
+    //       window.location.reload();
+    //     } else {
+    //       console.error('Failed to set database');
+    //     }
+    //   });
+    // } catch (error) {
+    //   console.error('Error setting database:', error);
+    // }
   };
 
   return (
