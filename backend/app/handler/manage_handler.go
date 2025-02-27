@@ -79,14 +79,10 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	dbName = strings.TrimPrefix(dbName, "db")
 	dbIndx, _ := strconv.Atoi(dbName)
 
-	//dbIndex := r.Context().Value("database")
+	dbIndexCtx := r.Context().Value("database")
 
-	// dbIndexInt := 3
-
-	// if dbIndex != nil {
-	// 	dbIndexInt, _ = dbIndex.(int)
-	// }
-	log.Printf("DB Index:", dbIndx)
+	log.Printf("DB Index: %d", dbIndx)
+	log.Printf("DB Index Ctx: %s", dbIndexCtx)
 
 	ran := getRange(r)
 
@@ -96,7 +92,7 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 		pattern = pattern + filter + pattern
 	}
 
-	allKeys, err := h.RedisRepository.GetAllKeys(pattern, dbIndx)
+	allKeys, err := h.RedisRepository.GetAllKeys(pattern, dbIndexCtx.(int))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

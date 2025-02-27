@@ -50,14 +50,15 @@ func Database(next http.Handler) http.Handler {
 		database := r.Header.Get("X-Database")
 
 		if database != "" {
-			//remove db from database
 			database = strings.TrimPrefix(database, "db")
 			dbIndx, _ := strconv.Atoi(database)
 			log.Printf("Database: %d", dbIndx)
 
-			r.WithContext(context.WithValue(r.Context(), "database", dbIndx))
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "database", dbIndx)))
+			return
 		}
 
 		next.ServeHTTP(w, r)
+
 	})
 }
