@@ -19,6 +19,7 @@ const httpClient = (url, options = {}) => {
 
   const { token } = JSON.parse(localStorage.getItem("user"));
   options.headers.set("Authorization", `Bearer ${token}`);
+  options.headers.set("X-Database", localStorage.getItem("selectedDb"));
   return fetchUtils.fetchJson(url, options);
 };
 

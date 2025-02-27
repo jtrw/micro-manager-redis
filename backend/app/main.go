@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"embed"
-	"github.com/jessevdk/go-flags"
-	"github.com/redis/go-redis/v9"
 	"log"
 	server "micro-manager-redis/app/server"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/redis/go-redis/v9"
 )
 
 var webFS embed.FS
@@ -74,6 +75,7 @@ func main() {
 		Client:         rdb,
 		AuthLogin:      opts.AuthLogin,
 		AuthPassword:   opts.AuthPassword,
+		Context:        ctx,
 	}
 	if err := srv.Run(ctx); err != nil {
 		log.Printf("[ERROR] failed, %+v", err)

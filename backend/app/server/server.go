@@ -37,6 +37,7 @@ type Server struct {
 	Client         *redis.Client
 	AuthLogin      string
 	AuthPassword   string
+	Context        context.Context
 }
 
 func (s Server) Run(ctx context.Context) error {
@@ -76,6 +77,7 @@ func (s Server) routes() chi.Router {
 	router.Use(rest.AppInfo("Manag-RKeys", "Jrtw", s.Version), rest.Ping)
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
+	router.Use(Database)
 
 	redRep := repository.NewRedisRepository(s.Client)
 	handler := manageHandler.NewHandler(redRep)

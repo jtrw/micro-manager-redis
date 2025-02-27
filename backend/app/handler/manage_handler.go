@@ -8,8 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
 	"sort"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type JSON map[string]interface{}
@@ -73,6 +74,20 @@ func getFilter(r *http.Request) string {
 func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	dbName := r.Header.Get("X-Database")
+
+	dbName = strings.TrimPrefix(dbName, "db")
+	dbIndx, _ := strconv.Atoi(dbName)
+
+	//dbIndex := r.Context().Value("database")
+
+	// dbIndexInt := 3
+
+	// if dbIndex != nil {
+	// 	dbIndexInt, _ = dbIndex.(int)
+	// }
+	log.Printf("DB Index:", dbIndx)
+
 	ran := getRange(r)
 
 	pattern := "*"
@@ -81,7 +96,7 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 		pattern = pattern + filter + pattern
 	}
 
-	allKeys, err := h.RedisRepository.GetAllKeys(pattern)
+	allKeys, err := h.RedisRepository.GetAllKeys(pattern, dbIndx)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -224,47 +239,47 @@ func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
 
 	dbs, err := h.RedisRepository.GetActiveKeySpaces()
 	if err != nil {
-        log.Println(err)
-        w.WriteHeader(http.StatusInternalServerError)
-        return
-    }
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	countDb, _ := h.RedisRepository.GetCountDb()
 
 	dbMap := make(map[int]int)
 
 	for i := 0; i < countDb; i++ {
-        dbMap[i] = 0
-    }
+		dbMap[i] = 0
+	}
 
 	for _, db := range dbs {
 		dbMap[db] = 1
 	}
 
 	keys := make([]int, 0, len(dbMap))
-    for k := range dbMap {
-        keys = append(keys, k)
-    }
+	for k := range dbMap {
+		keys = append(keys, k)
+	}
 	sort.Slice(keys, func(i, j int) bool {
-        if dbMap[keys[i]] != dbMap[keys[j]] {
-            return dbMap[keys[i]] > dbMap[keys[j]] // 1 буде перед 0
-        }
-        return keys[i] < keys[j] // якщо значення однакові, сортуємо за індексом
-    })
+		if dbMap[keys[i]] != dbMap[keys[j]] {
+			return dbMap[keys[i]] > dbMap[keys[j]] // 1 буде перед 0
+		}
+		return keys[i] < keys[j] // якщо значення однакові, сортуємо за індексом
+	})
 
-    // Створюємо новий відсортований map
-    sortedMap := make(map[int]int)
-    for _, k := range keys {
-        sortedMap[k] = dbMap[k]
-    }
+	// Створюємо новий відсортований map
+	sortedMap := make(map[int]int)
+	for _, k := range keys {
+		sortedMap[k] = dbMap[k]
+	}
 
 	log.Printf("sortedMap: %v", sortedMap)
-    json.NewEncoder(w).Encode(sortedMap)
+	json.NewEncoder(w).Encode(sortedMap)
 }
 
 func (h Handler) SetDatabase(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	//database from body json {"database":"0"}
 	var db JSON
 	err := json.NewDecoder(r.Body).Decode(&db)
