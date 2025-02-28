@@ -74,15 +74,15 @@ func getFilter(r *http.Request) string {
 func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	dbName := r.Header.Get("X-Database")
+	//dbName := r.Header.Get("X-Database")
 
-	dbName = strings.TrimPrefix(dbName, "db")
-	dbIndx, _ := strconv.Atoi(dbName)
+	//dbName = strings.TrimPrefix(dbName, "db")
+	//dbIndx, _ := strconv.Atoi(dbName)
 
-	dbIndexCtx := r.Context().Value("database")
+	//dbIndexCtx := r.Context().Value("database")
 
-	log.Printf("DB Index: %d", dbIndx)
-	log.Printf("DB Index Ctx: %s", dbIndexCtx)
+	//log.Printf("DB Index: %d", dbIndx)
+	//log.Printf("DB Index Ctx: %s", dbIndexCtx)
 
 	ran := getRange(r)
 
@@ -92,7 +92,7 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 		pattern = pattern + filter + pattern
 	}
 
-	allKeys, err := h.RedisRepository.GetAllKeys(pattern, dbIndexCtx.(int))
+	allKeys, err := h.RedisRepository.GetAllKeys(pattern)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -271,6 +271,10 @@ func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("sortedMap: %v", sortedMap)
 	json.NewEncoder(w).Encode(sortedMap)
+}
+
+func (h *Handler) SetRedisDatabase(index int) {
+	h.RedisRepository.SetActiveKeySpace(index)
 }
 
 func (h Handler) SetDatabase(w http.ResponseWriter, r *http.Request) {

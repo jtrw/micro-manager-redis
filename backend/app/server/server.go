@@ -77,7 +77,6 @@ func (s Server) routes() chi.Router {
 	router.Use(rest.AppInfo("Manag-RKeys", "Jrtw", s.Version), rest.Ping)
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
-	router.Use(Database)
 
 	redRep := repository.NewRedisRepository(s.Client)
 	handler := manageHandler.NewHandler(redRep)
@@ -87,6 +86,7 @@ func (s Server) routes() chi.Router {
 		"/api/v1", func(r chi.Router) {
 			r.Use(Cors)
 			r.Use(Auth(authHandle.GetToken()))
+			r.Use(SetDatabase(&handler))
 			r.Get("/keys", handler.AllKeys)
 			r.Get("/keys/{key}", handler.GetKey)
 			//r.Post("/keys", handler.CreateKey)
