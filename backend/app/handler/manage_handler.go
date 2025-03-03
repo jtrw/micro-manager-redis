@@ -74,16 +74,6 @@ func getFilter(r *http.Request) string {
 func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	//dbName := r.Header.Get("X-Database")
-
-	//dbName = strings.TrimPrefix(dbName, "db")
-	//dbIndx, _ := strconv.Atoi(dbName)
-
-	//dbIndexCtx := r.Context().Value("database")
-
-	//log.Printf("DB Index: %d", dbIndx)
-	//log.Printf("DB Index Ctx: %s", dbIndexCtx)
-
 	ran := getRange(r)
 
 	pattern := "*"
@@ -235,7 +225,6 @@ func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
 
 	dbs, err := h.RedisRepository.GetActiveKeySpaces()
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -258,45 +247,19 @@ func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.Slice(keys, func(i, j int) bool {
 		if dbMap[keys[i]] != dbMap[keys[j]] {
-			return dbMap[keys[i]] > dbMap[keys[j]] // 1 буде перед 0
+			return dbMap[keys[i]] > dbMap[keys[j]]
 		}
-		return keys[i] < keys[j] // якщо значення однакові, сортуємо за індексом
+		return keys[i] < keys[j]
 	})
 
-	// Створюємо новий відсортований map
 	sortedMap := make(map[int]int)
 	for _, k := range keys {
 		sortedMap[k] = dbMap[k]
 	}
 
-	log.Printf("sortedMap: %v", sortedMap)
 	json.NewEncoder(w).Encode(sortedMap)
 }
 
 func (h *Handler) SetRedisDatabase(index int) {
 	h.RedisRepository.SetActiveKeySpace(index)
-}
-
-func (h Handler) SetDatabase(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	//database from body json {"database":"0"}
-	var db JSON
-	err := json.NewDecoder(r.Body).Decode(&db)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	dbInt, err := strconv.Atoi(db["database"].(string))
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	log.Printf("dbInt: %v", dbInt)
-	h.RedisRepository.SetActiveKeySpace(dbInt)
-
-	json.NewEncoder(w).Encode(JSON{"status": "ok"})
 }
