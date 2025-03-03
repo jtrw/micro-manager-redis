@@ -1,10 +1,11 @@
 package server
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCorsMiddleware(t *testing.T) {
@@ -23,7 +24,7 @@ func TestCorsMiddleware(t *testing.T) {
 
 	assert.Equal(t, "*", rr.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "true", rr.Header().Get("Access-Control-Allow-Credentials"))
-	assert.Equal(t, "Control-Request, Content-Range, Request, Range, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control", rr.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "Control-Request, Content-Range, Request, Range, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Database", rr.Header().Get("Access-Control-Allow-Headers"))
 	assert.Equal(t, "GET, POST, DELETE, OPTIONS", rr.Header().Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "Content-Range", rr.Header().Get("Access-Control-Expose-Headers"))
 	assert.Equal(t, "OK", rr.Body.String())
