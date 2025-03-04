@@ -2,12 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"micro-manager-redis/app/repository"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockRedisRepository struct {
@@ -42,7 +43,10 @@ func (m *MockRedisRepository) DeleteByGroup(pattern string) error {
 	return args.Error(0)
 }
 
-// Implement other methods from RedisRepositoryInterface...
+func (m *MockRedisRepository) SetActiveKeySpace(db int) error {
+	args := m.Called(db)
+	return args.Error(0)
+}
 
 func Test_AllKeys(t *testing.T) {
 	mockRepo := new(MockRedisRepository)
