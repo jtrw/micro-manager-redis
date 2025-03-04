@@ -33,7 +33,7 @@ type RedisRepositoryInterface interface {
 	DeleteByGroup(pattern string) error
 	GetActiveKeySpaces() ([]int, error)
 	GetCountDb() (int, error)
-	SetActiveKeySpace(db int)
+	SetActiveKeySpace(db int) error
 }
 
 func NewRedisRepository(database *redis.Client) RedisRepositoryInterface {
@@ -180,8 +180,14 @@ func (r *RedisRepository) GetCountDb() (int, error) {
 	return databases, nil
 }
 
-func (r *RedisRepository) SetActiveKeySpace(db int) {
+func (r *RedisRepository) SetActiveKeySpace(db int) error {
 	ctx := context.Background()
 	log.Printf("SELECt DB %d", db)
-	r.Database.Do(ctx, "SELECT", db).Result()
+	_, err := r.Database.Do(ctx, "SELECT", db).Result()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
