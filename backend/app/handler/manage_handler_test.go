@@ -48,6 +48,16 @@ func (m *MockRedisRepository) SetActiveKeySpace(db int) error {
 	return args.Error(0)
 }
 
+func (m *MockRedisRepository) GetActiveKeySpaces() ([]int, error) {
+	args := m.Called()
+	return args.Get(0).([]int), args.Error(1)
+}
+
+func (m *MockRedisRepository) GetCountDb() (int, error) {
+	args := m.Called()
+	return args.Int(0), args.Error(1)
+}
+
 func Test_AllKeys(t *testing.T) {
 	mockRepo := new(MockRedisRepository)
 	handler := NewHandler(mockRepo)
