@@ -26,18 +26,15 @@ import (
 )
 
 type Server struct {
-	Listen         string
-	PinSize        int
-	MaxPinAttempts int
-	MaxExpire      time.Duration
-	WebRoot        string
-	WebFS          embed.FS
-	Secret         string
-	Version        string
-	Client         *redis.Client
-	AuthLogin      string
-	AuthPassword   string
-	Context        context.Context
+	Listen       string
+	WebRoot      string
+	WebFS        embed.FS
+	Secret       string
+	Version      string
+	Client       *redis.Client
+	AuthLogin    string
+	AuthPassword string
+	Context      context.Context
 }
 
 func (s Server) Run(ctx context.Context) error {
