@@ -96,9 +96,6 @@ The tool can be configured using command-line options or environment variables. 
 
 * `-l, --listen`: Listen address for the server (default: :8080).
 * `-s, --secret`: Secret key for secure operations (default: 123).
-* `--pinsize`: Size of PIN for secure operations (default: 5).
-* `--expire`: Maximum lifetime for keys (default: 24h).
-* `--pinattempts`: Maximum attempts to enter PIN (default: 3).
 * `--web`: Web UI location (default: ./web).
 * `--redis-url`: Redis server URL (default: localhost:6379).
 * `--redis-db`: Redis database name (default: 3).
@@ -131,6 +128,13 @@ Micro Manager Redis serves static files from the /web directory.
 To run tests, execute the following command:
 ```bash
 go test -v ./...
+```
+
+## Linting
+
+To run linters, execute the following command:
+```bash
+golangci-lint run
 ```
 
 ## License
