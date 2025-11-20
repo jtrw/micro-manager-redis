@@ -70,8 +70,22 @@ func SetDatabase(h *manageHandler.Handler) func(http.Handler) http.Handler {
 			dbNumber := r.Header.Get("X-Database")
 			if dbNumber != "" {
 				dbNumber = strings.TrimPrefix(dbNumber, "db")
-				index, _ := strconv.Atoi(dbNumber)
-				h.SetRedisDatabase(index)
+				index, err := strconv.Atoi(dbNumber)
+				if err != nil {
+					log.Printf("Invalid database number: %s", dbNumber)
+					http.Error(w, "Invalid database number", http.StatusBadRequest)
+					return
+				}
+				if index < 0 || index > 15 {
+					log.Printf("Database number out of range: %d", index)
+					http.Error(w, "Database number out of range (0-15)", http.StatusBadRequest)
+					return
+				}
+				if err := h.SetRedisDatabase(index); err != nil {
+					log.Printf("Error setting database: %v", err)
+					http.Error(w, "Failed to set database", http.StatusInternalServerError)
+					return
+				}
 			}
 			next.ServeHTTP(w, r)
 		})

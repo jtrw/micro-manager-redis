@@ -28,7 +28,7 @@ type RedisRepositoryInterface interface {
 	GetAllKeys(pattern string) ([]Keys, error)
 	GroupKeys(pattern, separator string) ([]SplitKeys, error)
 	GetKey(key string) (Keys, error)
-	DeleteKey(key string)
+	DeleteKey(key string) error
 	DeleteAllKeys()
 	DeleteByGroup(pattern string) error
 	GetActiveKeySpaces() ([]int, error)
@@ -76,7 +76,7 @@ func (r *RedisRepository) GroupKeys(pattern, separator string) ([]SplitKeys, err
 
 	for iter.Next(ctx) {
 		curentKey := iter.Val()
-		splitKey := strings.Split(curentKey, "::")
+		splitKey := strings.Split(curentKey, separator)
 		splitKeyLen := len(splitKey)
 		if splitKeyLen > 1 {
 			keys := SplitKeys{
@@ -106,22 +106,14 @@ func (r *RedisRepository) GetKey(key string) (Keys, error) {
 	}, nil
 }
 
-func (r *RedisRepository) DeleteKey(key string) {
+func (r *RedisRepository) DeleteKey(key string) error {
 	ctx := context.Background()
-
-	r.Database.Del(ctx, key).Result()
-	r.Database.Expire(ctx, key, -1)
+	return r.Database.Del(ctx, key).Err()
 }
 
 func (r *RedisRepository) DeleteAllKeys() {
 	ctx := context.Background()
-
 	r.Database.FlushAll(ctx).Result()
-
-	// iter := r.Database.Scan(ctx, 0, "*", 0).Iterator()
-	// for iter.Next(ctx) {
-	// 	r.Database.Del(ctx, iter.Val())
-	// }
 }
 
 func (r *RedisRepository) DeleteByGroup(pattern string) error {
@@ -129,8 +121,9 @@ func (r *RedisRepository) DeleteByGroup(pattern string) error {
 
 	iter := r.Database.Scan(ctx, 0, pattern, 0).Iterator()
 	for iter.Next(ctx) {
-		r.Database.Del(ctx, iter.Val())
-		r.Database.Expire(ctx, iter.Val(), -1)
+		if err := r.Database.Del(ctx, iter.Val()).Err(); err != nil {
+			return err
+		}
 	}
 	if err := iter.Err(); err != nil {
 		return err

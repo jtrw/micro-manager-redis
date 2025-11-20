@@ -93,13 +93,23 @@ func (h Handler) AllKeys(w http.ResponseWriter, r *http.Request) {
 	contentRange := "keys 0-" + strconv.Itoa(count) + "/" + strconv.Itoa(count)
 	w.Header().Set("Content-Range", contentRange)
 
-	if len(ran) > 0 {
-		offset, _ := strconv.Atoi(ran[0])
-		limit, _ := strconv.Atoi(ran[1])
-		if limit > count {
-			limit = count
+	if len(ran) >= 2 {
+		offset, errOffset := strconv.Atoi(ran[0])
+		limit, errLimit := strconv.Atoi(ran[1])
+		if errOffset == nil && errLimit == nil {
+			if offset < 0 {
+				offset = 0
+			}
+			if offset > count {
+				offset = count
+			}
+			if limit > count {
+				limit = count
+			}
+			if limit > offset {
+				allKeys = allKeys[offset:limit]
+			}
 		}
-		allKeys = allKeys[offset:limit]
 	}
 	json.NewEncoder(w).Encode(allKeys)
 }
@@ -129,31 +139,38 @@ func (h Handler) GroupKeys(w http.ResponseWriter, r *http.Request) {
 	ran := getRange(r)
 
 	count := len(allKeys)
-	if len(ran) > 0 {
-		offset, _ := strconv.Atoi(ran[0])
-		limit, _ := strconv.Atoi(ran[1])
-		if limit > count {
-			limit = count
+	if len(ran) >= 2 {
+		offset, errOffset := strconv.Atoi(ran[0])
+		limit, errLimit := strconv.Atoi(ran[1])
+		if errOffset == nil && errLimit == nil {
+			if offset < 0 {
+				offset = 0
+			}
+			if offset > count {
+				offset = count
+			}
+			if limit > count {
+				limit = count
+			}
+			if limit > offset {
+				allKeys = allKeys[offset:limit]
+			}
 		}
-		allKeys = allKeys[offset:limit]
 	}
 
-	log.Println(count)
 	contentRange := "keys-group 0-0/" + strconv.Itoa(count)
 	w.Header().Set("Content-Range", contentRange)
-	//w.Header().Set("Content-Range", string(count))
 	json.NewEncoder(w).Encode(allKeys)
 }
 
 func removeDuplicate(keys []repository.SplitKeys) []repository.SplitKeys {
 	result := []repository.SplitKeys{}
-	seen := map[string]string{}
+	seen := map[string]bool{}
 
 	for _, val := range keys {
-		if _, ok := seen[val.Key]; !ok {
+		if !seen[val.Key] {
 			result = append(result, val)
-			seen[val.Key] = val.Key
-			seen[val.Separator] = val.Separator
+			seen[val.Key] = true
 		}
 	}
 	return result
@@ -162,7 +179,13 @@ func removeDuplicate(keys []repository.SplitKeys) []repository.SplitKeys {
 func (h Handler) DeleteKey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	key := chi.URLParam(r, "key")
-	h.RedisRepository.DeleteKey(key)
+
+	if err := h.RedisRepository.DeleteKey(key); err != nil {
+		log.Printf("Error deleting key %s: %v", key, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(JSON{"error": "failed to delete key"})
+		return
+	}
 
 	json.NewEncoder(w).Encode(JSON{"status": "ok"})
 }
@@ -260,6 +283,6 @@ func (h Handler) GetDatabases(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(sortedMap)
 }
 
-func (h *Handler) SetRedisDatabase(index int) {
-	h.RedisRepository.SetActiveKeySpace(index)
+func (h *Handler) SetRedisDatabase(index int) error {
+	return h.RedisRepository.SetActiveKeySpace(index)
 }
