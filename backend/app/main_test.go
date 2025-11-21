@@ -20,17 +20,14 @@ import (
 func TestMainRun(t *testing.T) {
 	// Mock options
 	opts := Options{
-		Listen:         ":8080",
-		PinSize:        5,
-		MaxExpire:      24 * time.Hour,
-		MaxPinAttempts: 3,
-		WebRoot:        "./web",
-		Secret:         "123",
-		RedisUrl:       "localhost:6379",
-		Database:       3,
-		RedisPass:      "password",
-		AuthLogin:      "admin",
-		AuthPassword:   "admin",
+		Listen:       ":8080",
+		WebRoot:      "./web",
+		Secret:       "123",
+		RedisUrl:     "localhost:6379",
+		Database:     3,
+		RedisPass:    "",
+		AuthLogin:    "admin",
+		AuthPassword: "admin",
 	}
 
 	// Mock context
@@ -39,16 +36,14 @@ func TestMainRun(t *testing.T) {
 
 	// Create a mock server instance
 	srv := server.Server{
-		Listen:         opts.Listen,
-		PinSize:        opts.PinSize,
-		MaxExpire:      opts.MaxExpire,
-		MaxPinAttempts: opts.MaxPinAttempts,
-		WebRoot:        opts.WebRoot,
-		WebFS:          webFS,
-		Secret:         opts.Secret,
-		Version:        revision,
-		AuthLogin:      opts.AuthLogin,
-		AuthPassword:   opts.AuthPassword,
+		Listen:       opts.Listen,
+		WebRoot:      opts.WebRoot,
+		WebFS:        webFS,
+		Secret:       opts.Secret,
+		Version:      revision,
+		AuthLogin:    opts.AuthLogin,
+		AuthPassword: opts.AuthPassword,
+		Context:      ctx,
 	}
 
 	// Run the server (this will block, so we run it in a goroutine)

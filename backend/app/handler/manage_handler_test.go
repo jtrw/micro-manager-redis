@@ -30,8 +30,9 @@ func (m *MockRedisRepository) GetKey(key string) (repository.Keys, error) {
 	return args.Get(0).(repository.Keys), args.Error(1)
 }
 
-func (m *MockRedisRepository) DeleteKey(key string) {
-	m.Called(key)
+func (m *MockRedisRepository) DeleteKey(key string) error {
+	args := m.Called(key)
+	return args.Error(0)
 }
 
 func (m *MockRedisRepository) DeleteAllKeys() {
@@ -253,7 +254,7 @@ func TestDeleteKey(t *testing.T) {
 
 	// Mock repository method
 	mockRepo.On("DeleteKey", mock.Anything).
-		Return()
+		Return(nil)
 
 	req, err := http.NewRequest("DELETE", "/keys/key1", nil)
 	if err != nil {
